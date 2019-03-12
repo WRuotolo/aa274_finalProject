@@ -130,7 +130,7 @@ class Supervisor:
         pose_g_msg.x = self.x_g
         pose_g_msg.y = self.y_g
         pose_g_msg.theta = self.theta_g
-
+        print("Publishing pose")
         self.pose_goal_publisher.publish(pose_g_msg)
 
     def nav_to_pose(self):
@@ -140,13 +140,14 @@ class Supervisor:
         nav_g_msg.x = self.x_g
         nav_g_msg.y = self.y_g
         nav_g_msg.theta = self.theta_g
-
+        #print("Publishing nav")
         self.nav_goal_publisher.publish(nav_g_msg)
 
     def stay_idle(self):
         """ sends zero velocity to stay put """
 
         vel_g_msg = Twist()
+        #print("Idling")
         self.cmd_vel_publisher.publish(vel_g_msg)
 
     def close_to(self,x,y,theta):
@@ -156,7 +157,7 @@ class Supervisor:
 
     def init_stop_sign(self):
         """ initiates a stop sign maneuver """
-
+        #print("initiating stop sign")
         self.stop_sign_start = rospy.get_rostime()
         self.mode = Mode.STOP
 

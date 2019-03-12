@@ -217,20 +217,41 @@ class Navigator:
                     rospy.logwarn("Navigator: Path too short, not updating")
             else:
                 rospy.logwarn("Navigator: Could not find path")
+                pose_g_msg = Pose2D()
+                pose_g_msg.x = self.x
+                pose_g_msg.y = self.y
+                self.x_g = self.x
+                self.y_g = self.y
+                self.theta_g = self.theta
+                pose_g_msg.theta = self.theta
+                self.nav_pose_pub.publish(pose_g_msg)
                 self.current_plan = []
+                self.V_prev = 0
+                return
 
         # if we have a path, execute it (we need at least 3 points for this controller)
         if len(self.current_plan) > 3:
 
             # if currently not moving, first line up with the plan
             if self.V_prev == 0:
+
+                t_path_init = (rospy.get_rostime()-self.current_plan_start_time).to_sec()
+            
                 theta_init = np.arctan2(self.current_plan[1][1]-self.current_plan[0][1],self.current_plan[1][0]-self.current_plan[0][0])
                 theta_err = theta_init-self.theta
                 if abs(theta_err)>THETA_START_THRESH:
-                    cmd_msg = Twist()
-                    cmd_msg.linear.x = 0
-                    cmd_msg.angular.z = THETA_START_P * theta_err
-                    self.nav_vel_pub.publish(cmd_msg)
+
+                    if t_path_init > 20:
+                        cmd_msg = Twist()
+                        cmd_msg.linear.x = 0
+                        cmd_msg.angular.z = 3 * theta_err
+                        self.nav_vel_pub.publish(cmd_msg)
+                        rospy.loginfo("BANG BANG")
+                    else:
+                        cmd_msg = Twist()
+                        cmd_msg.linear.x = 0
+                        cmd_msg.angular.z = THETA_START_P * theta_err
+                        self.nav_vel_pub.publish(cmd_msg)
                     return
 
             # compute the "current" time along the path execution
